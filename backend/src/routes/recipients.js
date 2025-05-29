@@ -5,12 +5,6 @@ import auth from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Logging-Middleware für alle Requests auf dieser Route
-router.use((req, res, next) => {
-  console.log(`[Recipients] ${req.method} ${req.originalUrl}`, req.body);
-  next();
-});
-
 // Alle Empfänger (mit zugehörigem Kreis)
 router.get('/', auth, async (req, res) => {
   try {

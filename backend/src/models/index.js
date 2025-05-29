@@ -1,7 +1,6 @@
 import { Sequelize } from 'sequelize';
 import dotenv from 'dotenv';
 
-// Lädt .env.production oder .env.development je nach NODE_ENV
 dotenv.config({
   path: process.env.NODE_ENV === 'production' ? '.env.production' : '.env.development'
 });

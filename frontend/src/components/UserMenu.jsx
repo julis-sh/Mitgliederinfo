@@ -30,20 +30,6 @@ export default function UserMenu() {
   const WARNING = 29 * 60 * 1000; // 29 Minuten
   const [darkMode, setDarkMode] = React.useState(() => localStorage.getItem('darkMode') === 'true');
 
-  if (!user) return null;
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate('/login');
-  };
-
-  const handleToggleDark = () => {
-    localStorage.setItem('darkMode', !darkMode);
-    setDarkMode(!darkMode);
-    window.dispatchEvent(new Event('themeChange'));
-  };
-
-  // Reset-Timeout bei User-Interaktion
   React.useEffect(() => {
     const resetTimeout = () => {
       clearTimeout(timeoutRef.current);
@@ -61,6 +47,19 @@ export default function UserMenu() {
       events.forEach(e => window.removeEventListener(e, resetTimeout));
     };
   }, []);
+
+  if (!user) return null;
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    navigate('/login');
+  };
+
+  const handleToggleDark = () => {
+    localStorage.setItem('darkMode', !darkMode);
+    setDarkMode(!darkMode);
+    window.dispatchEvent(new Event('themeChange'));
+  };
 
   return (
     <>

@@ -22,9 +22,6 @@ router.get('/health', auth, async (req, res) => {
   const users = await User.findAll();
   const userEmails = users.map(u => u.email);
   result.duplicateUserEmails = userEmails.filter((v, i, a) => a.indexOf(v) !== i);
-  // Doppelte Mitgliedsnummern (wenn Member-Modell wieder aktiv)
-  // TODO: Member-Check, wenn Modell wieder vorhanden
-  // Empfänger mit nicht existierendem Kreis
   const recipients = await Recipient.findAll();
   const kreise = await Kreis.findAll();
   const kreisIds = kreise.map(k => k._id.toString());

@@ -22,6 +22,7 @@ User.init({
   role: { type: DataTypes.ENUM('admin', 'user'), defaultValue: 'user' },
   resetToken: { type: DataTypes.STRING },
   resetTokenExpires: { type: DataTypes.DATE },
+  msId: { type: DataTypes.STRING, allowNull: true },
 }, {
   sequelize,
   modelName: 'User',

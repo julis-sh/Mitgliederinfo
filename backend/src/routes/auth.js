@@ -5,6 +5,9 @@ import auth from '../middleware/auth.js';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 import { Op } from 'sequelize';
+import { BearerStrategy } from 'passport-azure-ad';
+import { jwtDecode } from 'jwt-decode';
+import { sendMail } from '../services/sendMail.js';
 
 const router = express.Router();
 
@@ -40,19 +43,12 @@ router.post('/request-reset', async (req, res) => {
   const expires = new Date(Date.now() + 1000 * 60 * 60); // 1h
   await user.setResetToken(token, expires);
   await user.save();
-  // Mailversand (hier nodemailer, ggf. anpassen)
-  const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: process.env.SMTP_PORT,
-    secure: false,
-    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
-  });
   const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${token}`;
-  await transporter.sendMail({
-    from: process.env.MAIL_FROM || 'noreply@julis-sh.de',
-    to: user.email,
+  await sendMail({
+    to: [user.email],
     subject: 'Passwort zurücksetzen',
-    html: `<p>Hallo,<br>du hast einen Passwort-Reset angefordert.<br>Klicke auf folgenden Link, um ein neues Passwort zu setzen:<br><a href="${resetUrl}">${resetUrl}</a><br>Der Link ist 1 Stunde gültig.</p>`
+    body: `<p>Hallo,<br>du hast einen Passwort-Reset angefordert.<br>Klicke auf folgenden Link, um ein neues Passwort zu setzen:<br><a href="${resetUrl}">${resetUrl}</a><br>Der Link ist 1 Stunde gültig.</p>`,
+    attachments: []
   });
   res.json({ message: 'Falls die E-Mail existiert, wurde eine Reset-Mail versendet.' });
 });
@@ -64,6 +60,35 @@ router.post('/reset-password', async (req, res) => {
   if (!user) return res.status(400).json({ message: 'Token ungültig oder abgelaufen.' });
   await user.update({ password, resetToken: null, resetTokenExpires: null });
   res.json({ message: 'Passwort erfolgreich zurückgesetzt.' });
+});
+
+// Microsoft SSO-Login
+router.post('/microsoft', async (req, res) => {
+  const { token } = req.body;
+  if (!token) return res.status(400).json({ message: 'Kein Token übergeben.' });
+  try {
+    const decoded = jwtDecode(token);
+    const email = decoded.preferred_username || decoded.email;
+    const allowedUsers = (process.env.MS_ALLOWED_USERS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+    const allowedDomain = process.env.MS_ALLOWED_DOMAIN || '@julis-sh.de';
+    if (allowedUsers.length > 0) {
+      if (!allowedUsers.includes(email.toLowerCase()) && !(decoded.oid && allowedUsers.includes(decoded.oid))) {
+        return res.status(403).json({ message: 'Nur bestimmte Accounts erlaubt.' });
+      }
+    } else {
+      if (!email || !email.endsWith(allowedDomain)) {
+        return res.status(403).json({ message: 'Nur Organisation-Accounts erlaubt.' });
+      }
+    }
+    let user = await User.findOne({ where: { email } });
+    if (!user) {
+      user = await User.create({ email, password: crypto.randomBytes(32).toString('hex'), role: 'user' });
+    }
+    const appToken = jwt.sign({ id: user.id, role: user.role, email: user.email }, process.env.JWT_SECRET, { expiresIn: '12h' });
+    res.json({ token: appToken, user: { email: user.email, role: user.role } });
+  } catch (err) {
+    res.status(401).json({ message: 'Microsoft-Token ungültig.' });
+  }
 });
 
 export default router; 

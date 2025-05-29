@@ -9,7 +9,6 @@ import { Op } from 'sequelize';
 
 const router = express.Router();
 
-// Hilfsfunktion für Attachments ganz oben definieren
 function safeAttachments(a) {
   if (Array.isArray(a)) return a;
   if (typeof a === 'string') {
@@ -33,7 +32,6 @@ async function getFunktionstraeger(kreisId) {
 
 // Mailversand für Mitglied und Szenario (ohne Speicherung)
 router.post('/', auth, async (req, res) => {
-  console.log('Mail-POST wurde aufgerufen');
   const { mitglied, scenario, attachments = [] } = req.body;
   if (!mitglied) return res.status(400).json({ message: 'Mitgliedsdaten erforderlich' });
 
@@ -60,10 +58,8 @@ router.post('/', auth, async (req, res) => {
     let empfaengerTemplate = await Template.findOne({
       where: { type: 'empfaenger', scenario, kreis: kreis_neu }
     });
-    console.log('Direktes Template-Match:', empfaengerTemplate);
     if (!empfaengerTemplate) {
       const allTemplates = await Template.findAll({ where: { type: 'empfaenger', scenario } });
-      console.log('Alle passenden Templates für Fallback:', allTemplates);
       empfaengerTemplate = await Template.findOne({
         where: {
           type: 'empfaenger',
@@ -74,7 +70,6 @@ router.post('/', auth, async (req, res) => {
           ]
         }
       });
-      console.log('Fallback-Template:', empfaengerTemplate);
     }
     if (!empfaengerTemplate) return res.status(404).json({ message: 'Kein Empfänger-Template für Verbandswechsel-Eintritt und neuen Kreis gefunden' });
     const subjectEmpfaenger = renderTemplate(empfaengerTemplate.subject, data);
@@ -177,10 +172,8 @@ router.post('/', auth, async (req, res) => {
     let empfaengerTemplate = await Template.findOne({
       where: { type: 'empfaenger', scenario, kreis: kreis_neu }
     });
-    console.log('Direktes Template-Match:', empfaengerTemplate);
     if (!empfaengerTemplate) {
       const allTemplates = await Template.findAll({ where: { type: 'empfaenger', scenario } });
-      console.log('Alle passenden Templates für Fallback:', allTemplates);
       empfaengerTemplate = await Template.findOne({
         where: {
           type: 'empfaenger',
@@ -191,7 +184,6 @@ router.post('/', auth, async (req, res) => {
           ]
         }
       });
-      console.log('Fallback-Template:', empfaengerTemplate);
     }
     if (!empfaengerTemplate) return res.status(404).json({ message: 'Kein Empfänger-Template für Verbandswechsel-Intern und neuen Kreis gefunden' });
     const subjectEmpfaenger = renderTemplate(empfaengerTemplate.subject, data);

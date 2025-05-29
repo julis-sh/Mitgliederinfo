@@ -30,10 +30,7 @@ app.get('/api/health', (req, res) => {
 (async () => {
   try {
     await sequelize.authenticate();
-    console.log('MariaDB verbunden');
     app.listen(PORT, () => console.log(`Server läuft auf Port ${PORT}`));
-    // Optional: Tabellen synchronisieren (nur für Entwicklung!)
-    // await sequelize.sync();
   } catch (err) {
     console.error('MariaDB Fehler:', err);
   }

@@ -188,7 +188,7 @@ export default function StartPage() {
             ) : (
               <Stack spacing={2}>
                 {logs.map(l => (
-                  <Box key={l._id} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Box key={l._id || l.createdAt} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                     <Box>
                       <Typography variant="subtitle2" color="primary" fontWeight={600}>{new Date(l.createdAt).toLocaleString('de-DE')}</Typography>
                       <Typography variant="body2" color="text.secondary">

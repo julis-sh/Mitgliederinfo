@@ -6,7 +6,6 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 function getAccessToken() {
-  // Client Credentials Flow
   const url = `https://login.microsoftonline.com/${process.env.TENANT_ID}/oauth2/v2.0/token`;
   const params = new URLSearchParams();
   params.append('client_id', process.env.CLIENT_ID);
@@ -42,7 +41,6 @@ export async function sendMail({ to, subject, body, attachments }) {
   await client.api('/users/' + process.env.SENDER_MAIL + '/sendMail').post({ message });
 }
 
-// Platzhalter ersetzen
 export function renderTemplate(template, data) {
   const replaced = template.replace(/\{(\w+)\}/g, (_, key) => data[key] || '');
   return replaced.replace(/\n/g, '<br>');

@@ -15,7 +15,6 @@ function TemplateForm({ open, onClose, onSave, initial, kreise, szenarien }) {
   React.useEffect(() => { setForm(initial || { attachments: [] }); }, [initial]);
   const handleChange = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }));
 
-  // Datei-Upload
   const handleFile = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -35,7 +34,6 @@ function TemplateForm({ open, onClose, onSave, initial, kreise, szenarien }) {
   const removeAttachment = (idx) => setForm(f => ({ ...f, attachments: safeArray(f.attachments).filter((_, i) => i !== idx) }));
 
   const handleSave = () => {
-    // attachments immer als Array von Objekten sichern
     const safeAttachments = Array.isArray(form.attachments) ? form.attachments.filter(a => a && a.filename && a.url) : [];
     onSave({ ...form, attachments: safeAttachments });
   };
@@ -119,7 +117,6 @@ export default function TemplatesPage() {
     api.get('/szenarien').then(r => setSzenarien(r.data));
   }, []);
   const handleSave = async (data) => {
-    // Szenario immer als value speichern, kreis nur setzen wenn ausgewählt
     const payload = {
       ...data,
       scenario: typeof data.scenario === 'object' ? data.scenario.value : data.scenario,

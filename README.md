@@ -61,16 +61,23 @@ DB_USER=...
 DB_PASSWORD=...
 DB_NAME=...
 JWT_SECRET=...
+MS_ALLOWED_DOMAIN=@julis-sh.de
+MS_ALLOWED_USERS=alice@julis-sh.de,bob@julis-sh.de # Kommagetrennte Whitelist, optional
+MS_CLIENT_ID=... # Microsoft App Client ID
+MS_TENANT_ID=... # Microsoft Tenant ID
 ```
 
 ---
 
-## Microsoft 365 App-Registrierung (Mailversand)
+## Microsoft 365 App-Registrierung (Mailversand & SSO)
 
-1. Azure Portal: App-Registrierung anlegen
-2. API-Berechtigung: Microsoft Graph > `Mail.Send`
+1. Azure Portal: App-Registrierung anlegen (Single Tenant, Redirect-URI: `http(s)://<deine-domain>/login`)
+2. API-Berechtigung: Microsoft Graph > `Mail.Send` und `openid`, `profile`, `email`
 3. Zertifikate & Geheimnisse: Neuen Clientschlüssel anlegen
-4. Werte in `.env` im Backend eintragen
+4. Werte in `.env` im Backend und Frontend eintragen
+   - Frontend: `.env` → `VITE_MS_CLIENT_ID=...`, `VITE_MS_TENANT_ID=...`
+   - Backend: `.env` → wie oben
+5. Nur User mit Domain `@julis-sh.de` (oder wie in `MS_ALLOWED_DOMAIN` gesetzt) können sich via SSO anmelden. Wenn `MS_ALLOWED_USERS` gesetzt ist, sind nur diese Accounts erlaubt.
 
 ---
 

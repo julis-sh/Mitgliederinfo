@@ -59,7 +59,6 @@ export default function MailPage() {
   const handleMitgliedChange = e => setMitglied(m => ({ ...m, [e.target.name]: e.target.value }));
 
   const handleFile = async (e) => {
-    // entfernt: Upload-Logik für Anhänge im Mail-Formular
   };
   const removeAttachment = idx => {};
 

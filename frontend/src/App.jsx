@@ -14,7 +14,6 @@ import UsersPage from './pages/UsersPage';
 import StammdatenPage from './pages/StammdatenPage';
 import ResetRequestPage from './pages/ResetRequestPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
-// Platzhalter für weitere Seiten
 
 function RequireAuth({ children }) {
   const token = localStorage.getItem('token');

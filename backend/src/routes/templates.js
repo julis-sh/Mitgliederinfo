@@ -1,4 +1,3 @@
-console.log('Templates-Route geladen');
 import express from 'express';
 import Template from '../models/Template.js';
 import auth from '../middleware/auth.js';
@@ -13,11 +12,9 @@ router.get('/', auth, async (req, res) => {
 
 // Template anlegen (nur Admin)
 router.post('/', auth, async (req, res) => {
-  console.log('Template-POST:', req.body); // Debug-Log
   if (req.user.role !== 'admin') return res.status(403).json({ message: 'Nur Admins dürfen Templates anlegen.' });
   try {
     const template = await Template.create(req.body);
-    console.log('Neues Template gespeichert:', template); // Log nach dem Speichern
     res.status(201).json(template);
   } catch (err) {
     res.status(400).json({ message: err.message });
