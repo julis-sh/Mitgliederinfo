@@ -1,5 +1,4 @@
 import React from 'react';
-import { Box, Typography, TextField, Button, Alert } from '@mui/material';
 import api from '../api';
 
 export default function ResetRequestPage() {
@@ -17,17 +16,28 @@ export default function ResetRequestPage() {
     }
   };
   return (
-    <Box maxWidth={400} mx="auto" mt={8}>
-      <Typography variant="h5" mb={2} align="center">Passwort zurücksetzen</Typography>
-      {sent ? (
-        <Alert severity="success">Falls die E-Mail existiert, wurde eine Reset-Mail versendet.</Alert>
-      ) : (
-        <form onSubmit={handleSubmit}>
-          <TextField label="E-Mail" fullWidth margin="normal" value={email} onChange={e => setEmail(e.target.value)} required />
-          {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
-          <Button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 2 }}>Reset-Link anfordern</Button>
-        </form>
-      )}
-    </Box>
+    <div className="container d-flex align-items-center justify-content-center" style={{ minHeight: '100vh' }}>
+      <div className="card bg-dark text-white shadow p-4" style={{ minWidth: 350, maxWidth: 400, width: '100%' }}>
+        <h3 className="fw-bold mb-3 text-center">Passwort zurücksetzen</h3>
+        {sent ? (
+          <div className="alert alert-success">Falls die E-Mail existiert, wurde eine Reset-Mail versendet.</div>
+        ) : (
+          <form onSubmit={handleSubmit}>
+            <div className="mb-3">
+              <label className="form-label">E-Mail</label>
+              <input
+                className="form-control"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
+                type="email"
+              />
+            </div>
+            {error && <div className="alert alert-danger py-2">{error}</div>}
+            <button type="submit" className="btn btn-primary w-100 fw-bold">Reset-Link anfordern</button>
+          </form>
+        )}
+      </div>
+    </div>
   );
 } 

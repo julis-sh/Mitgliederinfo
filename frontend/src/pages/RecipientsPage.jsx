@@ -1,18 +1,13 @@
 import React from 'react';
-import { Box, Typography, Button, Table, TableHead, TableRow, TableCell, TableBody, Dialog, DialogTitle, DialogContent, DialogActions, TextField, IconButton, Stack, Chip, MenuItem, Select, InputLabel, FormControl, Dialog as MuiDialog, DialogTitle as MuiDialogTitle, DialogContent as MuiDialogContent, DialogActions as MuiDialogActions, CircularProgress, Accordion, AccordionSummary, AccordionDetails, Alert } from '@mui/material';
-import { Add, Edit, Delete, ArrowBack } from '@mui/icons-material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import SearchIcon from '@mui/icons-material/Search';
-import InputAdornment from '@mui/material/InputAdornment';
 import api from '../api';
 import { useNavigate } from 'react-router-dom';
 
 const rollen = ['Vorsitzender', 'Schatzmeister'];
 
-function RecipientForm({ open, onClose, onSave, initial, kreise }) {
+function RecipientForm({ show, onClose, onSave, initial, kreise }) {
   const [form, setForm] = React.useState(initial || {});
   const [error, setError] = React.useState('');
-  React.useEffect(() => { setForm(initial || {}); setError(''); }, [initial]);
+  React.useEffect(() => { setForm(initial || {}); setError(''); }, [initial, show]);
   const handleChange = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }));
   const handleSave = () => {
     if (!form.kreis) {
@@ -23,43 +18,69 @@ function RecipientForm({ open, onClose, onSave, initial, kreise }) {
     onSave(form);
   };
   return (
-    <Dialog open={open} onClose={onClose}>
-      <DialogTitle>{initial ? 'Empfänger bearbeiten' : 'Empfänger anlegen'}</DialogTitle>
-      <DialogContent>
-        <Stack spacing={2} mt={1}>
-          <TextField label="Name" name="name" value={form.name||''} onChange={handleChange} required />
-          <TextField label="E-Mail" name="email" value={form.email||''} onChange={handleChange} required />
-          <FormControl fullWidth sx={{ mb: 2 }}>
-            <InputLabel>Kreis</InputLabel>
-            <Select name="kreis" value={form.kreis || ''} onChange={handleChange} required>
-              {kreise.map(k => <MenuItem key={k.id} value={k.id}>{k.name}</MenuItem>)}
-            </Select>
-          </FormControl>
-          <FormControl>
-            <InputLabel>Rolle</InputLabel>
-            <Select name="rolle" value={form.rolle||''} onChange={handleChange} required>
-              {rollen.map(r => <MenuItem key={r} value={r}>{r}</MenuItem>)}
-            </Select>
-          </FormControl>
-          {error && <Alert severity="error">{error}</Alert>}
-        </Stack>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Abbrechen</Button>
-        <Button onClick={handleSave} variant="contained" disabled={!form.kreis}>Speichern</Button>
-      </DialogActions>
-    </Dialog>
+    <div className={`modal fade${show ? ' show d-block' : ''}`} tabIndex="-1" style={{ background: show ? 'rgba(0,0,0,0.5)' : 'none' }}>
+      <div className="modal-dialog">
+        <div className="modal-content bg-dark text-white">
+          <div className="modal-header">
+            <h5 className="modal-title">{initial ? 'Empfänger bearbeiten' : 'Empfänger anlegen'}</h5>
+            <button type="button" className="btn-close btn-close-white" onClick={onClose}></button>
+          </div>
+          <div className="modal-body">
+            <div className="mb-3">
+              <label className="form-label">Name</label>
+              <input className="form-control" name="name" value={form.name||''} onChange={handleChange} required />
+            </div>
+            <div className="mb-3">
+              <label className="form-label">E-Mail</label>
+              <input className="form-control" name="email" value={form.email||''} onChange={handleChange} required />
+            </div>
+            <div className="mb-3">
+              <label className="form-label">Kreis</label>
+              <select className="form-select" name="kreis" value={form.kreis || ''} onChange={handleChange} required>
+                <option value="">Bitte wählen</option>
+                {kreise.map(k => <option key={k.id} value={k.id}>{k.name}</option>)}
+              </select>
+            </div>
+            <div className="mb-3">
+              <label className="form-label">Rolle</label>
+              <select className="form-select" name="rolle" value={form.rolle||''} onChange={handleChange} required>
+                <option value="">Bitte wählen</option>
+                {rollen.map(r => <option key={r} value={r}>{r}</option>)}
+              </select>
+            </div>
+            {error && <div className="alert alert-danger py-2">{error}</div>}
+          </div>
+          <div className="modal-footer">
+            <button type="button" className="btn btn-secondary" onClick={onClose}>Abbrechen</button>
+            <button type="button" className="btn btn-primary" onClick={handleSave} disabled={!form.kreis}>Speichern</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Toast({ show, message, type, onClose }) {
+  if (!show) return null;
+  return (
+    <div className={`toast show admin-toast bg-${type === 'success' ? 'success' : 'danger'} text-white`} role="alert" aria-live="assertive" aria-atomic="true">
+      <div className="d-flex">
+        <div className="toast-body">{message}</div>
+        <button type="button" className="btn-close btn-close-white me-2 m-auto" aria-label="Close" onClick={onClose}></button>
+      </div>
+    </div>
   );
 }
 
 export default function RecipientsPage() {
   const [recipients, setRecipients] = React.useState([]);
-  const [open, setOpen] = React.useState(false);
+  const [show, setShow] = React.useState(false);
   const [edit, setEdit] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
   const [deleteId, setDeleteId] = React.useState(null);
   const [kreise, setKreise] = React.useState([]);
   const [error, setError] = React.useState('');
+  const [toast, setToast] = React.useState({ show: false, message: '', type: 'success' });
   const navigate = useNavigate();
   const [search, setSearch] = React.useState('');
   React.useEffect(() => {
@@ -77,82 +98,132 @@ export default function RecipientsPage() {
     try {
       if (edit) {
         await api.put(`/recipients/${edit.id}`, payload);
+        setToast({ show: true, message: 'Empfänger gespeichert.', type: 'success' });
       } else {
         await api.post('/recipients', payload);
+        setToast({ show: true, message: 'Empfänger angelegt.', type: 'success' });
       }
-      setOpen(false); setEdit(null);
+      setShow(false); setEdit(null);
       setLoading(true);
       const res = await api.get('/recipients'); setRecipients(res.data); setLoading(false);
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Fehler beim Speichern');
+      setToast({ show: true, message: 'Fehler beim Speichern.', type: 'danger' });
     }
   };
   const handleDelete = async (id) => {
-    await api.delete(`/recipients/${id}`);
-    setRecipients(recipients => recipients.filter(r => r._id !== id));
+    const original = recipients.find(r => r.id === id);
+    setRecipients(recipients => recipients.filter(r => r.id !== id && r._id !== id));
     setDeleteId(null);
+    try {
+      await api.delete(`/recipients/${id}`);
+      setToast({ show: true, message: 'Empfänger gelöscht.', type: 'success' });
+    } catch {
+      setRecipients(recipients => [...recipients, original].sort((a, b) => a.id - b.id));
+      setToast({ show: true, message: 'Fehler beim Löschen.', type: 'danger' });
+    }
   };
   return (
-    <Box maxWidth={800} mx="auto" mt={4}>
-      <IconButton onClick={() => navigate('/')} sx={{ mb: 1 }}><ArrowBack /></IconButton>
-      <Typography variant="h5" mb={2}>Empfänger/Kreise</Typography>
-      <TextField
+    <div className="container-xl mt-4">
+      <button className="btn btn-link text-light mb-2" onClick={() => navigate('/')}>← Zurück</button>
+      <h2 className="text-white mb-3">Empfänger/Kreise</h2>
+      <input
+        className="form-control mb-3"
         placeholder="Suchen... (Name, E-Mail, Rolle, Kreis)"
         value={search}
         onChange={e => setSearch(e.target.value)}
-        fullWidth
-        sx={{ mb: 2 }}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <SearchIcon />
-            </InputAdornment>
-          ),
-        }}
       />
-      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-      {kreise.map(kreis => (
-        <Accordion key={kreis.id} defaultExpanded>
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}><Typography>{kreis.name}</Typography></AccordionSummary>
-          <AccordionDetails>
-            <Button variant="outlined" startIcon={<Add />} sx={{ mb: 2 }} onClick={() => { setEdit(null); setOpen(true); }}>Neuer Empfänger</Button>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Name</TableCell>
-                  <TableCell>E-Mail</TableCell>
-                  <TableCell>Rolle</TableCell>
-                  <TableCell>Aktionen</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {recipients
-                  .filter(r => r.kreisId === kreis.id || r.KreisId === kreis.id)
-                  .map(r => (
-                    <TableRow key={r.id}>
-                      <TableCell>{r.name}</TableCell>
-                      <TableCell>{r.email}</TableCell>
-                      <TableCell>{r.rolle}</TableCell>
-                      <TableCell>
-                        <IconButton onClick={() => { setEdit(r); setOpen(true); }}><Edit /></IconButton>
-                        <IconButton onClick={() => setDeleteId(r.id)}><Delete /></IconButton>
-                      </TableCell>
-                    </TableRow>
+      {error && <div className="alert alert-danger mb-2">{error}</div>}
+      {loading ? (
+        <div className="d-flex justify-content-center align-items-center" style={{ minHeight: 200 }}>
+          <div className="spinner-border text-primary" role="status"><span className="visually-hidden">Lädt...</span></div>
+        </div>
+      ) : (
+        kreise.map(kreis => {
+          const filtered = recipients
+            .filter(r => (r.kreisId === kreis.id || r.KreisId === kreis.id))
+            .filter(r => {
+              const q = search.toLowerCase();
+              return (
+                r.name?.toLowerCase().includes(q) ||
+                r.email?.toLowerCase().includes(q) ||
+                r.rolle?.toLowerCase().includes(q) ||
+                kreis.name?.toLowerCase().includes(q)
+              );
+            });
+          return (
+            <div className="card bg-dark text-white mb-4" key={kreis.id}>
+              <div className="card-header d-flex justify-content-between align-items-center">
+                <span className="fw-bold">{kreis.name}</span>
+                <button className="btn btn-outline-light btn-sm" onClick={() => { setEdit(null); setShow(true); }}>Neuer Empfänger</button>
+              </div>
+              <div className="card-body p-0">
+                <div className="d-block d-md-none">
+                  {filtered.length === 0 ? (
+                    <div className="table-empty-row p-3">Keine Empfänger vorhanden.</div>
+                  ) : filtered.map(r => (
+                    <div className="card bg-secondary text-white mb-2" key={r.id}>
+                      <div className="card-body py-2 px-3">
+                        <div className="fw-bold">{r.name}</div>
+                        <div className="small">{r.email}</div>
+                        <div className="small mb-2">{r.rolle}</div>
+                        <div>
+                          <button className="btn btn-sm btn-outline-primary me-2" onClick={() => { setEdit(r); setShow(true); }}>Bearbeiten</button>
+                          <button className="btn btn-sm btn-outline-danger" onClick={() => setDeleteId(r.id)}>Löschen</button>
+                        </div>
+                      </div>
+                    </div>
                   ))}
-              </TableBody>
-            </Table>
-          </AccordionDetails>
-        </Accordion>
-      ))}
-      <RecipientForm open={open} onClose={() => { setOpen(false); setEdit(null); }} onSave={handleSave} initial={edit} kreise={kreise} />
-      <MuiDialog open={!!deleteId} onClose={() => setDeleteId(null)}>
-        <MuiDialogTitle>Löschen bestätigen</MuiDialogTitle>
-        <MuiDialogContent>Möchtest du diesen Empfänger wirklich löschen?</MuiDialogContent>
-        <MuiDialogActions>
-          <Button onClick={() => setDeleteId(null)}>Abbrechen</Button>
-          <Button color="error" onClick={() => handleDelete(deleteId)}>Löschen</Button>
-        </MuiDialogActions>
-      </MuiDialog>
-    </Box>
+                </div>
+                <div className="table-responsive d-none d-md-block">
+                  <table className="table table-dark table-hover mb-0 align-middle">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>E-Mail</th>
+                        <th>Rolle</th>
+                        <th>Aktionen</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filtered.length === 0 ? (
+                        <tr><td colSpan={4} className="table-empty-row">Keine Empfänger vorhanden.</td></tr>
+                      ) : filtered.map(r => (
+                        <tr key={r.id}>
+                          <td>{r.name}</td>
+                          <td>{r.email}</td>
+                          <td>{r.rolle}</td>
+                          <td>
+                            <button className="btn btn-sm btn-outline-primary me-2" onClick={() => { setEdit(r); setShow(true); }}>Bearbeiten</button>
+                            <button className="btn btn-sm btn-outline-danger" onClick={() => setDeleteId(r.id)}>Löschen</button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          );
+        })
+      )}
+      <RecipientForm show={show} onClose={() => { setShow(false); setEdit(null); }} onSave={handleSave} initial={edit} kreise={kreise} />
+      <div className={`modal fade${deleteId ? ' show d-block' : ''}`} tabIndex="-1" style={{ background: deleteId ? 'rgba(0,0,0,0.5)' : 'none' }}>
+        <div className="modal-dialog">
+          <div className="modal-content bg-dark text-white">
+            <div className="modal-header">
+              <h5 className="modal-title">Löschen bestätigen</h5>
+              <button type="button" className="btn-close btn-close-white" onClick={() => setDeleteId(null)}></button>
+            </div>
+            <div className="modal-body">Möchtest du diesen Empfänger wirklich löschen?</div>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={() => setDeleteId(null)}>Abbrechen</button>
+              <button className="btn btn-danger" onClick={() => handleDelete(deleteId)}>Löschen</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <Toast show={toast.show} message={toast.message} type={toast.type} onClose={() => setToast({ ...toast, show: false })} />
+    </div>
   );
 } 

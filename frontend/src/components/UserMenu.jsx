@@ -1,12 +1,5 @@
 import React from 'react';
-import { Box, Typography, IconButton, Menu, MenuItem, Avatar, Divider } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogActions from '@mui/material/DialogActions';
-import Button from '@mui/material/Button';
-import Brightness4Icon from '@mui/icons-material/Brightness4';
-import Brightness7Icon from '@mui/icons-material/Brightness7';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 function getUser() {
   try {
@@ -19,35 +12,20 @@ function getUser() {
   }
 }
 
+const navLinks = [
+  { name: 'Dashboard', icon: 'bi-house', href: '/' },
+  { name: 'Neue Mail senden', icon: 'bi-envelope', href: '/mail' },
+  { name: 'Empfänger', icon: 'bi-people', href: '/recipients', admin: true },
+  { name: 'Mail-Templates', icon: 'bi-card-text', href: '/templates', admin: true },
+  { name: 'Benutzer', icon: 'bi-person-badge', href: '/users', admin: true },
+  { name: 'Stammdaten', icon: 'bi-database', href: '/stammdaten', admin: true },
+  { name: 'Audit-Log', icon: 'bi-gear', href: '/auditlog', admin: true },
+];
+
 export default function UserMenu() {
   const user = getUser();
-  const [anchorEl, setAnchorEl] = React.useState(null);
   const navigate = useNavigate();
-  const [showTimeout, setShowTimeout] = React.useState(false);
-  const timeoutRef = React.useRef();
-  const warningRef = React.useRef();
-  const TIMEOUT = 30 * 60 * 1000; // 30 Minuten
-  const WARNING = 29 * 60 * 1000; // 29 Minuten
-  const [darkMode, setDarkMode] = React.useState(() => localStorage.getItem('darkMode') === 'true');
-
-  React.useEffect(() => {
-    const resetTimeout = () => {
-      clearTimeout(timeoutRef.current);
-      clearTimeout(warningRef.current);
-      setShowTimeout(false);
-      warningRef.current = setTimeout(() => setShowTimeout(true), WARNING);
-      timeoutRef.current = setTimeout(() => handleLogout(), TIMEOUT);
-    };
-    resetTimeout();
-    const events = ['mousemove', 'keydown', 'mousedown', 'touchstart'];
-    events.forEach(e => window.addEventListener(e, resetTimeout));
-    return () => {
-      clearTimeout(timeoutRef.current);
-      clearTimeout(warningRef.current);
-      events.forEach(e => window.removeEventListener(e, resetTimeout));
-    };
-  }, []);
-
+  const location = useLocation();
   if (!user) return null;
 
   const handleLogout = () => {
@@ -55,40 +33,34 @@ export default function UserMenu() {
     navigate('/login');
   };
 
-  const handleToggleDark = () => {
-    localStorage.setItem('darkMode', !darkMode);
-    setDarkMode(!darkMode);
-    window.dispatchEvent(new Event('themeChange'));
-  };
-
   return (
-    <>
-      <Box position="absolute" top={16} right={16}>
-        <IconButton onClick={e => setAnchorEl(e.currentTarget)}>
-          <Avatar>{user.email[0].toUpperCase()}</Avatar>
-        </IconButton>
-        <Menu anchorEl={anchorEl} open={!!anchorEl} onClose={() => setAnchorEl(null)}>
-          <Box px={2} py={1}>
-            <Typography variant="subtitle2">{user.email}</Typography>
-            <Typography variant="caption" color="text.secondary">{user.role}</Typography>
-          </Box>
-          <Divider />
-          <MenuItem onClick={handleToggleDark}>
-            {darkMode ? <Brightness7Icon sx={{ mr: 1 }} /> : <Brightness4Icon sx={{ mr: 1 }} />}
-            {darkMode ? 'Helles Design' : 'Dark Mode'}
-          </MenuItem>
-          <MenuItem onClick={handleLogout}>Logout</MenuItem>
-        </Menu>
-      </Box>
-      <Dialog open={showTimeout} onClose={() => setShowTimeout(false)}>
-        <DialogTitle>Automatischer Logout</DialogTitle>
-        <Box px={3} pb={2}>
-          <Typography>Du wirst in 1 Minute automatisch ausgeloggt.<br />Bitte bestätige eine Aktion, um eingeloggt zu bleiben.</Typography>
-        </Box>
-        <DialogActions>
-          <Button onClick={() => setShowTimeout(false)} autoFocus>OK</Button>
-        </DialogActions>
-      </Dialog>
-    </>
+    <aside className="admin-sidebar position-fixed top-0 start-0 vh-100 d-flex flex-column p-6" style={{ width: 240, zIndex: 1040 }}>
+      <div className="mb-4 text-center">
+        <img src="/juli-logo.svg" alt="Logo" style={{ width: 100, height: 100 }} className="mb-2" />
+
+      </div>
+      <nav className="flex-grow-1">
+        {navLinks.filter(l => !l.admin || user.role === 'admin').map(link => (
+          <a
+            key={link.name}
+            href={link.href}
+            className={`nav-link d-flex align-items-center gap-2 px-3 py-2${location.pathname === link.href ? ' active' : ''}`}
+            style={{ textDecoration: 'none' }}
+          >
+            <i className={`bi ${link.icon}`}></i>
+            {link.name}
+          </a>
+        ))}
+      </nav>
+      <div className="mt-auto d-flex flex-column align-items-center">
+        <div className="mb-2">
+          <span className="avatar bg-accent rounded-circle d-inline-flex justify-content-center align-items-center text-dark fw-bold" style={{width:36, height:36}}>
+            {(user.displayName ? user.displayName[0] : user.email[0]).toUpperCase()}
+          </span>
+        </div>
+        <div className="small text-white-50 mb-2">{user.displayName || user.email}</div>
+        <button className="btn btn-outline-light btn-sm w-100" onClick={handleLogout}>Abmelden</button>
+      </div>
+    </aside>
   );
 } 

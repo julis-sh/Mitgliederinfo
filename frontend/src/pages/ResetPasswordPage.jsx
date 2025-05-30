@@ -1,5 +1,4 @@
 import React from 'react';
-import { Box, Typography, TextField, Button, Alert } from '@mui/material';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import api from '../api';
 
@@ -24,20 +23,40 @@ export default function ResetPasswordPage() {
       setError(err.response?.data?.message || 'Fehler beim Zurücksetzen.');
     }
   };
-  if (!token) return <Box maxWidth={400} mx="auto" mt={8}><Alert severity="error">Kein Token angegeben.</Alert></Box>;
+  if (!token) return <div className="container d-flex align-items-center justify-content-center" style={{ minHeight: '100vh' }}><div className="alert alert-danger">Kein Token angegeben.</div></div>;
   return (
-    <Box maxWidth={400} mx="auto" mt={8}>
-      <Typography variant="h5" mb={2} align="center">Neues Passwort setzen</Typography>
-      {success ? (
-        <Alert severity="success">Passwort erfolgreich gesetzt! Du wirst weitergeleitet ...</Alert>
-      ) : (
-        <form onSubmit={handleSubmit}>
-          <TextField label="Neues Passwort" type="password" fullWidth margin="normal" value={pw} onChange={e => setPw(e.target.value)} required />
-          <TextField label="Wiederholen" type="password" fullWidth margin="normal" value={pw2} onChange={e => setPw2(e.target.value)} required />
-          {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
-          <Button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 2 }}>Passwort setzen</Button>
-        </form>
-      )}
-    </Box>
+    <div className="container d-flex align-items-center justify-content-center" style={{ minHeight: '100vh' }}>
+      <div className="card bg-dark text-white shadow p-4" style={{ minWidth: 350, maxWidth: 400, width: '100%' }}>
+        <h3 className="fw-bold mb-3 text-center">Neues Passwort setzen</h3>
+        {success ? (
+          <div className="alert alert-success">Passwort erfolgreich gesetzt! Du wirst weitergeleitet ...</div>
+        ) : (
+          <form onSubmit={handleSubmit}>
+            <div className="mb-3">
+              <label className="form-label">Neues Passwort</label>
+              <input
+                type="password"
+                className="form-control"
+                value={pw}
+                onChange={e => setPw(e.target.value)}
+                required
+              />
+            </div>
+            <div className="mb-3">
+              <label className="form-label">Wiederholen</label>
+              <input
+                type="password"
+                className="form-control"
+                value={pw2}
+                onChange={e => setPw2(e.target.value)}
+                required
+              />
+            </div>
+            {error && <div className="alert alert-danger py-2">{error}</div>}
+            <button type="submit" className="btn btn-primary w-100 fw-bold">Passwort setzen</button>
+          </form>
+        )}
+      </div>
+    </div>
   );
 } 

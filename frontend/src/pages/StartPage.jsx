@@ -1,18 +1,5 @@
 import React from 'react';
-import { Box, Typography, Card, CardActionArea, CardContent, Grid, Avatar, Stack, CircularProgress, Alert, Paper, Divider } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import GroupIcon from '@mui/icons-material/Group';
-import EmailIcon from '@mui/icons-material/Email';
-import SettingsIcon from '@mui/icons-material/Settings';
-import ListAltIcon from '@mui/icons-material/ListAlt';
-import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
-import StorageIcon from '@mui/icons-material/Storage';
-import PersonIcon from '@mui/icons-material/Person';
-import PeopleIcon from '@mui/icons-material/People';
-import FolderIcon from '@mui/icons-material/Folder';
-import TimelineIcon from '@mui/icons-material/Timeline';
-import Tooltip from '@mui/material/Tooltip';
-import AddCircleIcon from '@mui/icons-material/AddCircle';
 import api from '../api';
 
 function getUser() {
@@ -27,67 +14,32 @@ function getUser() {
 }
 
 const cards = [
-  {
-    label: 'Mailversand',
-    icon: <EmailIcon fontSize="large" color="primary" />, 
-    path: '/mail',
-    admin: false,
-    desc: 'Mitglieder-Mails versenden'
-  },
-  {
-    label: 'Empfänger/Kreise',
-    icon: <GroupIcon fontSize="large" color="secondary" />, 
-    path: '/recipients',
-    admin: true,
-    desc: 'Kreisverbände & Funktionsträger verwalten'
-  },
-  {
-    label: 'Mail-Templates',
-    icon: <ListAltIcon fontSize="large" color="action" />, 
-    path: '/templates',
-    admin: true,
-    desc: 'Vorlagen für Mails bearbeiten'
-  },
-  {
-    label: 'Audit-Log',
-    icon: <SettingsIcon fontSize="large" color="disabled" />, 
-    path: '/auditlog',
-    admin: true,
-    desc: 'Mailversand-Protokoll einsehen'
-  },
-  {
-    label: 'Benutzerverwaltung',
-    icon: <SupervisorAccountIcon fontSize="large" color="success" />,
-    path: '/users',
-    admin: true,
-    desc: 'Admins & Nutzer verwalten'
-  },
-  {
-    label: 'Stammdaten',
-    icon: <StorageIcon fontSize="large" color="warning" />, 
-    path: '/stammdaten',
-    admin: true,
-    desc: 'Kreise & Szenarien verwalten'
-  },
+  { label: 'Mailversand', icon: 'bi-envelope', path: '/mail', admin: false, desc: 'Mitglieder-Mails versenden' },
+  { label: 'Empfänger/Kreise', icon: 'bi-people', path: '/recipients', admin: true, desc: 'Kreisverbände & Funktionsträger verwalten' },
+  { label: 'Mail-Templates', icon: 'bi-card-text', path: '/templates', admin: true, desc: 'Vorlagen für Mails bearbeiten' },
+  { label: 'Audit-Log', icon: 'bi-gear', path: '/auditlog', admin: true, desc: 'Mailversand-Protokoll einsehen' },
+  { label: 'Benutzerverwaltung', icon: 'bi-person-badge', path: '/users', admin: true, desc: 'Admins & Nutzer verwalten' },
+  { label: 'Stammdaten', icon: 'bi-database', path: '/stammdaten', admin: true, desc: 'Kreise & Szenarien verwalten' },
 ];
 
 const statCards = [
-  { label: 'Empfänger', icon: <PeopleIcon color="secondary" />, key: 'recipients' },
-  { label: 'Kreise', icon: <GroupIcon color="action" />, key: 'kreise' },
-  { label: 'Szenarien', icon: <TimelineIcon color="warning" />, key: 'szenarien' },
-  { label: 'Mail-Templates', icon: <FolderIcon color="success" />, key: 'templates' },
-  { label: 'Benutzer', icon: <SupervisorAccountIcon color="info" />, key: 'users' },
+  { label: 'Empfänger', icon: 'bi-person-lines-fill', key: 'recipients' },
+  { label: 'Kreise', icon: 'bi-diagram-3', key: 'kreise' },
+  { label: 'Szenarien', icon: 'bi-graph-up', key: 'szenarien' },
+  { label: 'Mail-Templates', icon: 'bi-file-earmark-text', key: 'templates' },
+  { label: 'Benutzer', icon: 'bi-people-fill', key: 'users' },
+  { label: 'Mails gesendet', icon: 'bi-send', key: 'sentMails' },
 ];
 
 const quickLinks = [
-  { label: 'Neue Mail', icon: <EmailIcon />, path: '/mail', color: 'primary' },
-  { label: 'Empfänger hinzufügen', icon: <PeopleIcon />, path: '/recipients', color: 'secondary' },
+  { label: 'Neue Mail', icon: 'bi-envelope-plus', path: '/mail', color: 'primary' },
+  { label: 'Empfänger hinzufügen', icon: 'bi-person-plus', path: '/recipients', color: 'secondary' },
 ];
 
 export default function StartPage() {
   const navigate = useNavigate();
   const user = getUser();
-  const [stats, setStats] = React.useState({ members: 0, recipients: 0, kreise: 0, szenarien: 0, templates: 0, users: 0 });
+  const [stats, setStats] = React.useState({ recipients: 0, kreise: 0, szenarien: 0, templates: 0, users: 0, sentMails: 0 });
   const [logs, setLogs] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState('');
@@ -109,6 +61,8 @@ export default function StartPage() {
         szenarien: szenarien.data.length,
         templates: templates.data.length,
         users: users.data.length,
+        //sentMails: (auditlog.data || []).filter(l => l.type === 'mail').length, // TODO: fix this
+        sentMails: auditlog.data.length,
       });
       setLogs((auditlog.data || []).slice(0, 5));
       setLoading(false);
@@ -119,93 +73,81 @@ export default function StartPage() {
   }, []);
 
   return (
-    <Box maxWidth={900} mx="auto" mt={6}>
-      <Box display="flex" flexDirection="column" alignItems="center" mb={4}>
-        <Avatar src="/juli-logo.svg" alt="Junge Liberale Logo" sx={{ width: 120, height: 120, mb: 2 }} />
-        <Typography variant="h3" color="primary" gutterBottom fontWeight={700}>
-          Mitgliederinfo
-        </Typography>
-        <Typography variant="h6" color="text.secondary" mb={2}>
-          Willkommen im Mail-Dashboard der Jungen Liberalen Schleswig-Holstein.
-        </Typography>
-        {/* Quick-Links */}
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} mt={2} mb={2}>
+    <div className="container-xl mt-5">
+      <div className="text-center mb-4">
+        <img src="/juli-logo.svg" alt="Junge Liberale Logo" style={{ width: 100, height: 100 }} className="mb-3" />
+        <h1 className="fw-bold text-primary">Mitgliederinformationssystem</h1>
+        <h5 className="text-secondary mb-3">Willkommen im Mail-Dashboard der Jungen Liberalen Schleswig-Holstein.</h5>
+        <div className="d-flex flex-wrap justify-content-center gap-3 mb-3">
           {quickLinks.map(link => (
-            <Card key={link.label} sx={{ px: 2, py: 1, bgcolor: `${link.color}.light`, boxShadow: 1, cursor: 'pointer', '&:hover': { boxShadow: 4, bgcolor: `${link.color}.main`, color: '#fff' } }} onClick={() => navigate(link.path)}>
-              <Stack direction="row" alignItems="center" spacing={1}>
-                {link.icon}
-                <Typography fontWeight={600}>{link.label}</Typography>
-              </Stack>
-            </Card>
+            <button key={link.label} className={`btn btn-${link.color} d-flex align-items-center gap-2`} onClick={() => navigate(link.path)}>
+              <i className={`bi ${link.icon}`}></i> {link.label}
+            </button>
           ))}
-        </Stack>
-      </Box>
-      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        </div>
+      </div>
+      {error && <div className="alert alert-danger">{error}</div>}
       {loading ? (
-        <Box display="flex" justifyContent="center" alignItems="center" minHeight={200}><CircularProgress /></Box>
+        <div className="d-flex justify-content-center align-items-center" style={{ minHeight: 200 }}>
+          <div className="spinner-border text-primary" role="status"><span className="visually-hidden">Lädt...</span></div>
+        </div>
       ) : (
         <>
-          {/* Quick-Stats */}
-          <Grid container spacing={2} justifyContent="center" mb={3}>
+          {/* Statistiken */}
+          <div className="row g-3 mb-4">
             {statCards.map(stat => (
-              <Grid item xs={6} sm={4} md={2} key={stat.key}>
-                <Tooltip title={`Anzahl der ${stat.label.toLowerCase()}`} arrow>
-                  <Card sx={{ p: 2, textAlign: 'center', boxShadow: 2, transition: '0.2s', '&:hover': { boxShadow: 6, bgcolor: 'grey.100' } }}>
-                    <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center">
-                      {stat.icon}
-                      <Typography variant="h5" fontWeight={700}>{stats[stat.key]}</Typography>
-                      <Typography variant="body2" color="text.secondary">{stat.label}</Typography>
-                    </Box>
-                  </Card>
-                </Tooltip>
-              </Grid>
+              <div className="col-6 col-md-4 col-lg-2" key={stat.key}>
+                <div className="card bg-dark text-white text-center shadow-sm h-100">
+                  <div className="card-body">
+                    <i className={`bi ${stat.icon} mb-2`} style={{ fontSize: 28 }}></i>
+                    <h3 className="fw-bold mb-0">{stats[stat.key]}</h3>
+                    <div className="small text-secondary">{stat.label}</div>
+                  </div>
+                </div>
+              </div>
             ))}
-          </Grid>
+          </div>
           {/* Navigation Cards */}
-          <Grid container spacing={4} justifyContent="center" mb={3}>
+          <div className="row g-4 mb-4">
             {cards.filter(card => !card.admin || user?.role === 'admin').map(card => (
-              <Grid item xs={12} sm={6} md={4} key={card.label}>
-                <Card sx={{ minHeight: 180, boxShadow: 3, transition: '0.2s', '&:hover': { boxShadow: 8, bgcolor: 'grey.50' } }}>
-                  <CardActionArea onClick={() => navigate(card.path)} sx={{ height: '100%' }}>
-                    <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 150 }}>
-                      {card.icon}
-                      <Typography variant="h6" mt={2} fontWeight={600}>{card.label}</Typography>
-                      <Typography variant="body2" color="text.secondary" align="center" mt={1}>{card.desc}</Typography>
-                    </CardContent>
-                  </CardActionArea>
-                </Card>
-              </Grid>
+              <div className="col-12 col-md-6 col-lg-4" key={card.label}>
+                <div className="card h-100 shadow-sm bg-secondary bg-gradient text-white border-0" style={{ cursor: 'pointer' }} onClick={() => navigate(card.path)}>
+                  <div className="card-body d-flex flex-column align-items-center justify-content-center" style={{ minHeight: 150 }}>
+                    <i className={`bi ${card.icon} mb-2`} style={{ fontSize: 32 }}></i>
+                    <h5 className="fw-bold">{card.label}</h5>
+                    <div className="small text-light text-center">{card.desc}</div>
+                  </div>
+                </div>
+              </div>
             ))}
-          </Grid>
+          </div>
           {/* Audit-Log Timeline */}
-          <Paper elevation={2} sx={{ p: 2, mt: 2 }}>
-            <Typography variant="h6" fontWeight={600} mb={1} sx={{ display: 'flex', alignItems: 'center' }}>
-              <SettingsIcon sx={{ mr: 1 }} /> Letzte Aktionen
-            </Typography>
-            <Divider sx={{ mb: 1 }} />
-            {logs.length === 0 ? (
-              <Typography variant="body2" color="text.secondary">Keine Aktionen gefunden.</Typography>
-            ) : (
-              <Stack spacing={2}>
-                {logs.map(l => (
-                  <Box key={l._id || l.createdAt} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Box>
-                      <Typography variant="subtitle2" color="primary" fontWeight={600}>{new Date(l.createdAt).toLocaleString('de-DE')}</Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {l.user ? <b>{l.user}</b> : 'System'}: {l.type === 'mail' ? 'Mailversand' : l.type}
-                        {l.scenario && <> &nbsp;| Szenario: <b>{l.scenario}</b></>}
-                        {l.kreis && <> &nbsp;| Kreis: <b>{l.kreis}</b></>}
-                        {l.mitgliedEmail && <> &nbsp;| Mitglied: <b>{l.mitgliedEmail}</b></>}
-                        {l.empfaenger && l.empfaenger.length > 0 && <> &nbsp;| Empfänger: <b>{Array.isArray(l.empfaenger) ? l.empfaenger.join(', ') : l.empfaenger}</b></>}
-                      </Typography>
-                    </Box>
-                  </Box>
-                ))}
-              </Stack>
-            )}
-          </Paper>
+          <div className="card bg-dark text-white shadow-sm mb-5">
+            <div className="card-header d-flex align-items-center gap-2">
+              <i className="bi bi-gear"></i>
+              <span className="fw-bold">Letzte Aktionen</span>
+            </div>
+            <ul className="list-group list-group-flush">
+              {logs.length === 0 ? (
+                <li className="list-group-item bg-dark text-secondary">Keine Aktionen gefunden.</li>
+              ) : (
+                logs.map(l => (
+                  <li className="list-group-item bg-dark text-white" key={l._id || l.createdAt}>
+                    <div className="fw-bold text-primary">{new Date(l.createdAt).toLocaleString('de-DE')}</div>
+                    <div className="small">
+                      {l.user ? <b>{l.user}</b> : 'System'}: {l.type === 'mail' ? 'Mailversand' : l.type}
+                      {l.scenario && <> | Szenario: <b>{l.scenario}</b></>}
+                      {l.kreis && <> | Kreis: <b>{l.kreis}</b></>}
+                      {l.mitgliedEmail && <> | Mitglied: <b>{l.mitgliedEmail}</b></>}
+                      {l.empfaenger && l.empfaenger.length > 0 && <> | Empfänger: <b>{Array.isArray(l.empfaenger) ? l.empfaenger.join(', ') : l.empfaenger}</b></>}
+                    </div>
+                  </li>
+                ))
+              )}
+            </ul>
+          </div>
         </>
       )}
-    </Box>
+    </div>
   );
 } 

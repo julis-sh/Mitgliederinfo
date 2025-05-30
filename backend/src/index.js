@@ -26,6 +26,11 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
+// Ping-Route für Frontend-Connection-Status
+app.get('/api/ping', (req, res) => {
+  res.json({ ok: true });
+});
+
 // MariaDB Connect
 (async () => {
   try {

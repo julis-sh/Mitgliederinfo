@@ -3,7 +3,6 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import auth from '../middleware/auth.js';
 import crypto from 'crypto';
-import nodemailer from 'nodemailer';
 import { Op } from 'sequelize';
 import { BearerStrategy } from 'passport-azure-ad';
 import { jwtDecode } from 'jwt-decode';
@@ -43,7 +42,7 @@ router.post('/request-reset', async (req, res) => {
   const expires = new Date(Date.now() + 1000 * 60 * 60); // 1h
   await user.setResetToken(token, expires);
   await user.save();
-  const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${token}`;
+  const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${token}`;
   await sendMail({
     to: [user.email],
     subject: 'Passwort zurücksetzen',
@@ -69,6 +68,7 @@ router.post('/microsoft', async (req, res) => {
   try {
     const decoded = jwtDecode(token);
     const email = decoded.preferred_username || decoded.email;
+    const displayName = decoded.name || decoded.displayName || email;
     const allowedUsers = (process.env.MS_ALLOWED_USERS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
     const allowedDomain = process.env.MS_ALLOWED_DOMAIN || '@julis-sh.de';
     if (allowedUsers.length > 0) {
@@ -84,8 +84,8 @@ router.post('/microsoft', async (req, res) => {
     if (!user) {
       user = await User.create({ email, password: crypto.randomBytes(32).toString('hex'), role: 'user' });
     }
-    const appToken = jwt.sign({ id: user.id, role: user.role, email: user.email }, process.env.JWT_SECRET, { expiresIn: '12h' });
-    res.json({ token: appToken, user: { email: user.email, role: user.role } });
+    const appToken = jwt.sign({ id: user.id, role: user.role, email: user.email, displayName }, process.env.JWT_SECRET, { expiresIn: '12h' });
+    res.json({ token: appToken, user: { email: user.email, role: user.role, displayName } });
   } catch (err) {
     res.status(401).json({ message: 'Microsoft-Token ungültig.' });
   }

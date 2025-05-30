@@ -1,0 +1,105 @@
+/* Adminpanel Global Styles */
+
+body, html {
+  background: #181a1b !important;
+  color: #fff;
+}
+
+/* Card Hover Effekt */
+.card:hover, .card:focus {
+  box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.25);
+  background: #23272b !important;
+  transition: box-shadow 0.2s, background 0.2s;
+}
+
+/* Button Hover/Active */
+.btn-primary, .btn-primary:focus {
+  background: #ffc700;
+  border-color: #ffc700;
+  color: #181a1b;
+}
+.btn-primary:hover {
+  background: #ffd84d;
+  border-color: #ffd84d;
+  color: #181a1b;
+}
+.btn-outline-light:hover, .btn-outline-light:focus {
+  background: #fff;
+  color: #181a1b;
+}
+
+/* Sidebar (optional, falls eingebaut) */
+.admin-sidebar {
+  background: #181a1b;
+  min-height: 100vh;
+  border-right: 1px solid #23272b;
+  padding-top: 2rem;
+}
+.admin-sidebar .nav-link {
+  color: #fff;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  border-radius: 0.5rem;
+}
+.admin-sidebar .nav-link.active, .admin-sidebar .nav-link:hover {
+  background: #23272b;
+  color: #ffc700;
+}
+
+/* Fokus-Styles für Accessibility */
+*:focus {
+  outline: 2px solid #ffc700 !important;
+  outline-offset: 2px;
+}
+
+/* Bootstrap Toasts (unten rechts) */
+.admin-toast {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 9999;
+  min-width: 250px;
+}
+
+/* Branding: Akzentfarbe für Links, Icons, Badges */
+.text-accent, .badge-accent {
+  color: #ffc700 !important;
+}
+.bg-accent, .badge-accent {
+  background: #ffc700 !important;
+  color: #181a1b !important;
+}
+
+/* Tabellen: Leere Zeile */
+.table-empty-row {
+  color: #aaa;
+  text-align: center;
+}
+
+/* Utility: runde Ecken, Abstand */
+.rounded-3 {
+  border-radius: 1rem !important;
+}
+.p-3 {
+  padding: 1rem !important;
+}
+.mb-3 {
+  margin-bottom: 1rem !important;
+}
+
+/* Responsive Cards */
+@media (max-width: 767px) {
+  .card {
+    margin-bottom: 1rem;
+  }
+}
+
+.connection-banner-fade-in {
+  opacity: 1;
+  transition: opacity 0.5s;
+}
+.connection-banner-fade-out {
+  opacity: 0;
+  transition: opacity 0.5s;
+  pointer-events: none;
+} 

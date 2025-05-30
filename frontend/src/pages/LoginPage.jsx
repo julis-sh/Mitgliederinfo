@@ -1,10 +1,8 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, Link } from 'react-router-dom';
-import { Box, Button, TextField, Typography, Alert } from '@mui/material';
 import api from '../api';
 import { PublicClientApplication } from '@azure/msal-browser';
-import MicrosoftIcon from '@mui/icons-material/Microsoft';
 
 const msalConfig = {
   auth: {
@@ -13,7 +11,6 @@ const msalConfig = {
     redirectUri: window.location.origin + '/login',
   },
 };
-console.log('MSAL Config:', msalConfig);
 const msalInstance = new PublicClientApplication(msalConfig);
 
 export default function LoginPage() {
@@ -37,15 +34,11 @@ export default function LoginPage() {
   };
 
   const handleMicrosoftLogin = async () => {
-    console.log('Microsoft-Login-Button geklickt');
     setLoading(true);
     setServerError('');
     try {
-      console.log('Starte MSAL-Initialisierung');
       await msalInstance.initialize();
-      console.log('Starte loginPopup');
       const loginResponse = await msalInstance.loginPopup({ scopes: ['openid', 'profile', 'email'] });
-      console.log('LoginResponse:', loginResponse);
       const msToken = loginResponse.idToken;
       let res;
       try {
@@ -62,7 +55,6 @@ export default function LoginPage() {
       localStorage.setItem('token', res.data.token);
       navigate('/');
     } catch (err) {
-      console.error('Fehler bei loginPopup:', err);
       setServerError('Microsoft-Login fehlgeschlagen');
     } finally {
       setLoading(false);
@@ -70,52 +62,48 @@ export default function LoginPage() {
   };
 
   return (
-    <Box maxWidth={400} mx="auto" mt={8}>
-      <Typography variant="h5" mb={2} align="center">Login</Typography>
-      <Button
-        variant="outlined"
-        color="primary"
-        fullWidth
-        startIcon={<MicrosoftIcon />}
-        sx={{ mb: 2, textTransform: 'none', fontWeight: 600 }}
-        onClick={handleMicrosoftLogin}
-        disabled={loading}
-      >
-        Mit Microsoft 365 anmelden
-      </Button>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <TextField
-          label="E-Mail"
-          fullWidth
-          margin="normal"
-          {...register('email', { required: 'E-Mail erforderlich' })}
-          error={!!errors.email}
-          helperText={errors.email?.message}
-        />
-        <TextField
-          label="Passwort"
-          type="password"
-          fullWidth
-          margin="normal"
-          {...register('password', { required: 'Passwort erforderlich' })}
-          error={!!errors.password}
-          helperText={errors.password?.message}
-        />
-        {serverError && <Alert severity="error" sx={{ mt: 2 }}>{serverError}</Alert>}
-        <Button
-          type="submit"
-          variant="contained"
-          color="primary"
-          fullWidth
-          sx={{ mt: 2 }}
+    <div className="d-flex align-items-center justify-content-center min-vh-100" style={{ background: '#181a1b' }}>
+      <div className="card bg-dark text-white shadow p-4 mx-auto" style={{ minWidth: 320, maxWidth: 400, width: '100%' }}>
+        <div className="text-center mb-3">
+          <img src="/juli-logo.svg" alt="Logo" style={{ width: 60, height: 60 }} className="mb-2" />
+          <h3 className="fw-bold">Login</h3>
+        </div>
+        <button
+          className="btn btn-outline-light w-100 mb-3 d-flex align-items-center justify-content-center gap-2 fw-semibold"
+          onClick={handleMicrosoftLogin}
           disabled={loading}
         >
-          {loading ? 'Einloggen...' : 'Login'}
-        </Button>
-        <Box mt={2} textAlign="center">
-          <Link to="/reset-request" style={{ fontSize: 14 }}>Passwort vergessen?</Link>
-        </Box>
-      </form>
-    </Box>
+          <i className="bi bi-microsoft"></i> Mit Microsoft 365 anmelden
+        </button>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <div className="mb-3">
+            <label className="form-label">E-Mail</label>
+            <input
+              className={`form-control${errors.email ? ' is-invalid' : ''}`}
+              {...register('email', { required: 'E-Mail erforderlich' })}
+              disabled={loading}
+            />
+            {errors.email && <div className="invalid-feedback">{errors.email.message}</div>}
+          </div>
+          <div className="mb-3">
+            <label className="form-label">Passwort</label>
+            <input
+              type="password"
+              className={`form-control${errors.password ? ' is-invalid' : ''}`}
+              {...register('password', { required: 'Passwort erforderlich' })}
+              disabled={loading}
+            />
+            {errors.password && <div className="invalid-feedback">{errors.password.message}</div>}
+          </div>
+          {serverError && <div className="alert alert-danger py-2">{serverError}</div>}
+          <button type="submit" className="btn btn-primary w-100 fw-bold" disabled={loading}>
+            {loading ? 'Einloggen...' : 'Login'}
+          </button>
+          <div className="mt-3 text-center">
+            <Link to="/reset-request" className="link-light small">Passwort vergessen?</Link>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 } 
